@@ -6,13 +6,13 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
 	Time "time"
 
 	"github.com/samber/lo"
 )
 
 func main() {
-	startT := Time.Now()
 	f, err := os.Open("input.txt")
 	if err != nil {
 		panic(err)
@@ -57,22 +57,51 @@ func main() {
 	for _, v := range ans {
 		task1 = task1 * v
 	}
-	fmt.Println("task1 ", task1)
-	fmt.Println("task2 ", getPossibleSolutions(t2, d2))
+	fmt.Println("task1 ", task1) //1413720
+	startT := Time.Now()
+	//fmt.Println("task2 threads", getPossibleSolutions(t2, d2)) //30565288
+	fmt.Println("task2 threads", threadPossible(t2, d2, 2000)) //30565288
 	fmt.Println(Time.Since(startT))
 }
 
 func getPossibleSolutions(t, d int) int {
-	m := map[int]int{}
+	m := map[int]bool{}
 	for i := 0; i < t; i++ {
 		if l := getLenght(i+1, t); l > d {
-			m[i+1] = l
+			m[i+1] = true
 		}
 	}
 	return len(m)
 }
 
+func threadPossible(t, d, threads int) int {
+	wg := sync.WaitGroup{}
+	a := make([]int, threads)
+	for i := 0; i < threads; i++ {
+		itr := i
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			threadThatShit(itr*(t/threads), (itr+1)*(t/threads), d, t, &a, itr)
+		}()
+
+	}
+	wg.Wait()
+	return lo.Reduce(a, func(agg int, i int, _ int) int {
+		return agg + i
+	}, 0)
+}
+
 func getLenght(wait, time int) int {
-	//fmt.Println((time - wait) * wait)
 	return (time - wait) * wait
+}
+
+func threadThatShit(from, to, dist, time int, arr *[]int, ind int) {
+	m := map[int]bool{}
+	for i := from; i < to; i++ {
+		if l := getLenght(i+1, time); l > dist {
+			m[i+1] = true
+		}
+	}
+	(*arr)[ind] = len(m)
 }
