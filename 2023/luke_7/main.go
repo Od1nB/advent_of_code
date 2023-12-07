@@ -21,24 +21,10 @@ const (
 	FiveofaKind
 )
 
+var compNames = [...]string{"HighCard", "OnePair", "TwoPair", "ThreeofaKind", "FullHouse", "FourofaKind", "FiveofaKind"}
+
 func (c Composition) String() string {
-	switch c {
-	case 0:
-		return "HighCard"
-	case 1:
-		return "OnePair"
-	case 2:
-		return "TwoPair"
-	case 3:
-		return "ThreeofaKind"
-	case 4:
-		return "FullHouse"
-	case 5:
-		return "FourofaKind"
-	case 6:
-		return "FiveofaKind"
-	}
-	return ""
+	return compNames[c]
 }
 
 var rankToVal = map[string]int{
@@ -78,14 +64,14 @@ type Hand struct {
 }
 
 func main() {
-	f, err := os.Open("input.txt")
+	f, err := os.Open("brynj.txt")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 	scnr := bufio.NewScanner(f)
 	a := []Hand{}
-	tot := 0
+	tot, tot2 := 0, 0
 	for scnr.Scan() {
 		t := strings.Split(scnr.Text(), " ")
 		b, _ := strconv.Atoi(t[1])
@@ -95,7 +81,6 @@ func main() {
 	for ind, hand := range a {
 		tot += (ind + 1) * hand.Bid
 	}
-	tot2 := 0
 	sort.Slice(a, LesswJkr(a))
 	for ind, hand := range a {
 		tot2 += (ind + 1) * hand.Bid
