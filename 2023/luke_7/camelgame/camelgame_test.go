@@ -18,26 +18,26 @@ var (
 )
 
 func TestHighCard(t *testing.T) {
-	assert.Equal(t, highCard(h2, h3), false)
-	assert.Equal(t, highCard(h3, h2), true)
-	assert.Equal(t, highCard(h1, h2), true)
+	assert.Equal(t, highCard(h2, h3, CardValue), false)
+	assert.Equal(t, highCard(h3, h2, CardValue), true)
+	assert.Equal(t, highCard(h1, h2, CardValue), true)
 
 }
 func TestCardComp(t *testing.T) {
-	assert.Equal(t, h1.CardComp(), OnePair)
-	assert.Equal(t, h2.CardComp(), TwoPair)
-	assert.Equal(t, h3.CardComp(), TwoPair)
-	assert.Equal(t, h4.CardComp(), ThreeofaKind)
-	assert.Equal(t, h5.CardComp(), ThreeofaKind)
+	assert.Equal(t, CardComp(h1), OnePair)
+	assert.Equal(t, CardComp(h2), TwoPair)
+	assert.Equal(t, CardComp(h3), TwoPair)
+	assert.Equal(t, CardComp(h4), ThreeofaKind)
+	assert.Equal(t, CardComp(h5), ThreeofaKind)
 }
 
 func TestHighCardJkr(t *testing.T) {
-	assert.Equal(t, jkrHighCard(h8, h7), true)
+	assert.Equal(t, highCard(h8, h7, JkrCardValue), true)
 }
 
 func TestCardCompJkr(t *testing.T) {
-	assert.Equal(t, h6.CardCompJoker(), OnePair)
-	assert.Equal(t, h3.CardCompJoker(), FourofaKind)
-	assert.Equal(t, h5.CardCompJoker(), FourofaKind)
-	assert.Equal(t, h2.CardCompJoker(), TwoPair)
+	assert.Equal(t, CardCompJoker(h6), OnePair)
+	assert.Equal(t, CardCompJoker(h3), FourofaKind)
+	assert.Equal(t, CardCompJoker(h5), FourofaKind)
+	assert.Equal(t, CardCompJoker(h2), TwoPair)
 }

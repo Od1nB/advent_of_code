@@ -1,9 +1,5 @@
 package camelgame
 
-import (
-	"sort"
-)
-
 type Composition int
 
 const (
@@ -22,79 +18,81 @@ func (c Composition) String() string {
 	return compNames[c]
 }
 
-var rankToVal = map[string]int{
-	"A": 13,
-	"K": 12,
-	"Q": 11,
-	"J": 10,
-	"T": 9,
-	"9": 8,
-	"8": 7,
-	"7": 6,
-	"6": 5,
-	"5": 4,
-	"4": 3,
-	"3": 2,
-	"2": 1,
-}
-var rankwJoker = map[string]int{
-	"A": 13,
-	"K": 12,
-	"Q": 11,
-	"T": 10,
-	"9": 9,
-	"8": 8,
-	"7": 7,
-	"6": 6,
-	"5": 5,
-	"4": 4,
-	"3": 3,
-	"2": 2,
-	"J": 1,
-}
+var (
+	rankToVal = map[string]int{
+		"A": 13,
+		"K": 12,
+		"Q": 11,
+		"J": 10,
+		"T": 9,
+		"9": 8,
+		"8": 7,
+		"7": 6,
+		"6": 5,
+		"5": 4,
+		"4": 3,
+		"3": 2,
+		"2": 1,
+	}
+	rankwJoker = map[string]int{
+		"A": 13,
+		"K": 12,
+		"Q": 11,
+		"T": 10,
+		"9": 9,
+		"8": 8,
+		"7": 7,
+		"6": 6,
+		"5": 5,
+		"4": 4,
+		"3": 3,
+		"2": 2,
+		"J": 1,
+	}
+)
 
 type Hand struct {
 	Cards string
 	Bid   int
 }
 
-func (h Hand) CardComp() Composition {
+func CardComp(h Hand) Composition {
 	m := map[string]int{}
 	for _, v := range h.Cards {
 		m[string(v)]++
 	}
-	switch {
-	case len(m) == 1:
+	switch len(m) {
+	case 1:
 		return FiveofaKind
-	case len(m) == 2:
+	case 2:
 		for _, v := range m {
 			if v == 4 {
 				return FourofaKind
 			}
 		}
 		return FullHouse
-	case len(m) == 3:
+	case 3:
 		for _, v := range m {
 			if v == 3 {
 				return ThreeofaKind
 			}
 		}
 		return TwoPair
-	case len(m) == 4:
+	case 4:
 		return OnePair
 	default:
 		return HighCard
 	}
 }
-func (h Hand) CardCompJoker() Composition {
+func CardCompJoker(h Hand) Composition {
 	m := map[string]int{}
 	for _, v := range h.Cards {
 		m[string(v)]++
 	}
-	switch {
-	case len(m) == 1:
+	switch len(m) {
+	case 1:
 		return FiveofaKind
-	case len(m) == 2:
+	case 2:
 		if _, jkr := m["J"]; jkr {
 			return FiveofaKind
 		}
@@ -104,7 +102,7 @@ func (h Hand) CardCompJoker() Composition {
 			}
 		}
 		return FullHouse
-	case len(m) == 3:
+	case 3:
 		numJkr, jkr := m["J"]
 		for _, v := range m {
 			if v == 3 && jkr {
@@ -120,7 +118,7 @@ func (h Hand) CardCompJoker() Composition {
 			return FourofaKind
 		}
 		return TwoPair
-	case len(m) == 4:
+	case 4:
 		if _, jkr := m["J"]; jkr {
 			return ThreeofaKind
 		}
@@ -133,15 +131,15 @@ func (h Hand) CardCompJoker() Composition {
 	}
 }
 
-func cardValue(s string) int {
+func CardValue(s string) int {
 	return rankToVal[s]
 }
 
-func jkrCardValue(s string) int {
+func JkrCardValue(s string) int {
 	return rankwJoker[s]
 }
 
-func highCard(h, j Hand) bool {
+func highCard(h, j Hand, cardValue func(s string) int) bool {
 	for i := 0; i < len(h.Cards); i++ {
 		if h.Cards[i] == j.Cards[i] {
 			continue
@@ -151,39 +149,12 @@ func highCard(h, j Hand) bool {
 	return false
 }
 
-func jkrHighCard(h, j Hand) bool {
-	for i := 0; i < len(h.Cards); i++ {
-		if h.Cards[i] == j.Cards[i] {
-			continue
-		}
-		return jkrCardValue(string(h.Cards[i])) < jkrCardValue(string(j.Cards[i]))
-	}
-	return false
-}
-
-func Sort(less func(hands []Hand) func(i int, j int) bool) func(hands []Hand) []Hand {
-	return func(hands []Hand) []Hand {
-		sort.Slice(hands, less(hands))
-		return hands
-	}
-}
-
-func Less(hands []Hand) func(i, j int) bool {
+func Less(hands []Hand, cardValue func(s string) int, cardComp func(h Hand) Composition) func(i, j int) bool {
 	return func(i, j int) bool {
-		c1, c2 := hands[i].CardComp(), hands[j].CardComp()
+		c1, c2 := cardComp(hands[i]), cardComp(hands[j])
 		if c1 != c2 {
 			return c1 < c2
 		}
-		return highCard(hands[i], hands[j])
-	}
-}
-
-func LesswJkr(hands []Hand) func(i, j int) bool {
-	return func(i, j int) bool {
-		c1, c2 := hands[i].CardCompJoker(), hands[j].CardCompJoker()
-		if c1 != c2 {
-			return c1 < c2
-		}
-		return jkrHighCard(hands[i], hands[j])
+		return highCard(hands[i], hands[j], cardValue)
 	}
 }
