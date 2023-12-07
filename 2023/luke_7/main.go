@@ -95,7 +95,13 @@ func main() {
 	for ind, hand := range a {
 		tot += (ind + 1) * hand.Bid
 	}
-	fmt.Println(tot)
+	tot2 := 0
+	sort.Slice(a, LesswJkr(a))
+	for ind, hand := range a {
+		tot2 += (ind + 1) * hand.Bid
+	}
+	fmt.Println("task1 ", tot)
+	fmt.Println("task2 ", tot2)
 
 }
 
@@ -127,9 +133,59 @@ func (h Hand) CardComp() Composition {
 		return HighCard
 	}
 }
+func (h Hand) CardCompJoker() Composition {
+	m := map[string]int{}
+	for _, v := range h.Cards {
+		m[string(v)]++
+	}
+	switch {
+	case len(m) == 1:
+		return FiveofaKind
+	case len(m) == 2:
+		if _, jkr := m["J"]; jkr {
+			return FiveofaKind
+		}
+		for _, v := range m {
+			if v == 4 {
+				return FourofaKind
+			}
+		}
+		return FullHouse
+	case len(m) == 3:
+		numJkr, jkr := m["J"]
+		for _, v := range m {
+			if v == 3 && jkr {
+				return FourofaKind
+			} else if v == 3 && !jkr {
+				return ThreeofaKind
+			}
+		}
+		if jkr {
+			if numJkr == 1 {
+				return FullHouse
+			}
+			return FourofaKind
+		}
+		return TwoPair
+	case len(m) == 4:
+		if _, jkr := m["J"]; jkr {
+			return ThreeofaKind
+		}
+		return OnePair
+	default:
+		if _, jkr := m["J"]; jkr {
+			return OnePair
+		}
+		return HighCard
+	}
+}
 
 func cardValue(s string) int {
 	return rankToVal[s]
+}
+
+func jkrCardValue(s string) int {
+	return rankwJoker[s]
 }
 
 func highCard(h, j Hand) bool {
@@ -138,6 +194,16 @@ func highCard(h, j Hand) bool {
 			continue
 		}
 		return cardValue(string(h.Cards[i])) < cardValue(string(j.Cards[i]))
+	}
+	return false
+}
+
+func jkrHighCard(h, j Hand) bool {
+	for i := 0; i < len(h.Cards); i++ {
+		if h.Cards[i] == j.Cards[i] {
+			continue
+		}
+		return jkrCardValue(string(h.Cards[i])) < jkrCardValue(string(j.Cards[i]))
 	}
 	return false
 }
@@ -156,5 +222,15 @@ func Less(hands []Hand) func(i, j int) bool {
 			return c1 < c2
 		}
 		return highCard(hands[i], hands[j])
+	}
+}
+
+func LesswJkr(hands []Hand) func(i, j int) bool {
+	return func(i, j int) bool {
+		c1, c2 := hands[i].CardCompJoker(), hands[j].CardCompJoker()
+		if c1 != c2 {
+			return c1 < c2
+		}
+		return jkrHighCard(hands[i], hands[j])
 	}
 }
