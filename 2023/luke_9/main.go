@@ -61,7 +61,6 @@ func appendHistory(entries []Entry) int {
 func prePendHistory(entries []Entry) int {
 	score := 0
 	for _, v := range entries {
-		//fmt.Print(v.extras)
 		for i := len(v.extras) - 1; i >= 0; i-- {
 			if isAllZeroes(v.extras[i]) {
 				v.extras[i] = append([]int{0}, v.extras[i]...)
@@ -71,8 +70,7 @@ func prePendHistory(entries []Entry) int {
 		}
 		num := v.history[0] - v.extras[0][0]
 		score += num
-
-	} //task2 942
+	}
 	return score
 }
 func fillExtras(e *Entry) {
