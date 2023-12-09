@@ -1,0 +1,11 @@
+#!/bin/bash
+
+for i in {1..24}; do
+  dir_name="luke_${i}"
+  mkdir "$dir_name"
+  cd "$dir_name" || exit
+  touch main.go
+  cat ../../data/aoc_main_init.txt > main.go
+  go mod init "$dir_name"
+  cd ..
+done
