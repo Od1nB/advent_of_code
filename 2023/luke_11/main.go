@@ -26,10 +26,11 @@ func main() {
 
 	emptyRows, emptyColumns := getEmptyRows(universe), getEmptyColumns(universe)
 
-	galaxies := getGalaxies(universe, emptyRows, emptyColumns)
+	galaxies_task1 := getGalaxies(universe, emptyRows, emptyColumns, 2)
+	galaxies_task2 := getGalaxies(universe, emptyRows, emptyColumns, 10000)
 
-	fmt.Println("task1: ", calcScore(galaxies))
-	fmt.Println("task2: ", 0)
+	fmt.Println("task1: ", calcScore(galaxies_task1))
+	fmt.Println("task2: ", calcScore(galaxies_task2))
 }
 
 func calcScore(galaxies map[int]Coord) int {
@@ -42,7 +43,7 @@ func calcScore(galaxies map[int]Coord) int {
 	return acc
 }
 
-func getGalaxies(universe []string, emptyRows, emptyColumns map[int]bool) map[int]Coord {
+func getGalaxies(universe []string, emptyRows, emptyColumns map[int]bool, emptySpace int) map[int]Coord {
 	galaxies := map[int]Coord{}
 	n := 0
 	for i := 0; i < len(universe); i++ {
@@ -59,7 +60,7 @@ func getGalaxies(universe []string, emptyRows, emptyColumns map[int]bool) map[in
 						nx++
 					}
 				}
-				galaxies[n] = Coord{x: i + ny, y: j + nx}
+				galaxies[n] = Coord{x: i + ny*(emptySpace-1), y: j + nx*(emptySpace-1)}
 				n++
 			}
 		}
