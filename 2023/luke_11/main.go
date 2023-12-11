@@ -29,8 +29,8 @@ func main() {
 	galaxies_task1 := getGalaxies(universe, emptyRows, emptyColumns, 2)
 	galaxies_task2 := getGalaxies(universe, emptyRows, emptyColumns, 10000)
 
-	fmt.Println("task1: ", calcScore(galaxies_task1))
-	fmt.Println("task2: ", calcScore(galaxies_task2))
+	fmt.Println("task1: ", calcScore(galaxies_task1)) //9769724
+	fmt.Println("task2: ", calcScore(galaxies_task2)) //603020563700
 }
 
 func calcScore(galaxies map[int]Coord) int {
