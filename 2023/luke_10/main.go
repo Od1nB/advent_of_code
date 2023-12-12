@@ -36,10 +36,10 @@ func main() {
 		grid = append(grid, t)
 	}
 	pm := fillMaze(grid)
-	task1 = pm.moveThrough() / 2
+	task1, task2 = pm.moveThrough()/2, pm.calcInsideArea(grid)
 
 	fmt.Println("task1: ", task1) //6768
-	fmt.Println("task2: ", task2)
+	fmt.Println("task2: ", task2) //351
 }
 
 func (pm *pipeMaze) moveThrough() int {
@@ -65,6 +65,48 @@ func (pm *pipeMaze) moveThrough() int {
 	}
 
 	return steps
+}
+
+func (pm pipeMaze) calcInsideArea(grid []string) int {
+
+	pm.replaceStart()
+	score := 0
+	for k, v := range pm.pipes {
+		if !v.inLoop {
+			pm.pipes[k].typ = "."
+		}
+	}
+	for y, line := range grid {
+		linesscore := 0
+		last := ""
+		lines := 0
+		tempscore := 0
+		for x := range line {
+			if pipe := pm.pipes[intsToCord(x, y)]; pipe.inLoop {
+				switch {
+				case pipe.typ == "|":
+					lines++
+					last = ""
+				case pipe.typ == "7" && last == "L":
+					lines++
+					last = ""
+				case pipe.typ == "J" && last == "F":
+					lines++
+					last = ""
+				case pipe.typ == "F" || pipe.typ == "L":
+					last = pipe.typ
+				}
+			} else if lines%2 == 0 && lines > 0 && tempscore != 0 {
+				linesscore += tempscore
+				tempscore = 0
+
+			} else if lines%2 != 0 && pipe.typ == "." {
+				tempscore++
+			}
+		}
+		score += linesscore
+	}
+	return score
 }
 
 // Made this to output the graph to look at it
@@ -159,6 +201,25 @@ func fillMaze(input []string) *pipeMaze {
 		}
 	}
 	return &pm
+}
+
+func (pm pipeMaze) replaceStart() {
+	for _, pipe := range pm.pipes {
+		if pipe.typ == "S" {
+			switch {
+			case pipe.w != nil && pipe.s != nil:
+				pipe.typ = "/"
+			case pipe.e != nil && pipe.s != nil:
+				pipe.typ = "F"
+			case pipe.e != nil && pipe.w != nil:
+				pipe.typ = "-"
+			case pipe.n != nil && pipe.w != nil:
+				pipe.typ = "J"
+			case pipe.n != nil && pipe.s != nil:
+				pipe.typ = "|"
+			}
+		}
+	}
 }
 
 func intsToCord(x, y int) string {
