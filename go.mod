@@ -1,0 +1,1 @@
+module github.com/Od1nB/advent_of_code
