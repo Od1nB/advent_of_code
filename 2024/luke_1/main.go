@@ -13,7 +13,12 @@ func main() {
 	var task1 int
 	var task2 int
 
-	f, err := os.Open("input.txt")
+	filename := "example.txt"
+	if len(os.Args) > 1 {
+		filename = os.Args[1]
+	}
+
+	f, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}

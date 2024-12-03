@@ -7,7 +7,12 @@ import (
 )
 
 func main() {
-	f, err := os.Open("input.txt")
+	filename := "example.txt"
+	if len(os.Args) > 1 {
+		filename = os.Args[1]
+	}
+
+	f, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
