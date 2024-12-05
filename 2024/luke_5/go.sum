@@ -1,3 +1,5 @@
+github.com/Od1nB/advent_of_code/tools v0.0.0-20241205111851-1751263de060 h1:9lRgRwIGxDQMJHzCCm3qnkDIrdJlj4DONTPJP5zL9jc=
+github.com/Od1nB/advent_of_code/tools v0.0.0-20241205111851-1751263de060/go.mod h1:KggXvrUYlycBOsD2DN96gDZOGtZa6j1MWRZT5tvWJ30=
 github.com/samber/lo v1.47.0 h1:z7RynLwP5nbyRscyvcD043DWYoOcYRv3mV8lBeqOCLc=
 github.com/samber/lo v1.47.0/go.mod h1:RmDH9Ct32Qy3gduHQuKJ3gW1fMHAnE/fAzQuf6He5cU=
 golang.org/x/text v0.16.0 h1:a94ExnEXNtEwYLGJSIUxnWoxoRz/ZcCsV63ROupILh4=

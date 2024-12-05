@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	cmp "github.com/Od1nB/advent_of_code/tools/comparison"
 	"github.com/samber/lo"
 )
 
@@ -76,7 +77,7 @@ func correctOrder(orders map[int][]int, update []int) bool {
 	seen := []int{}
 	for _, num := range update {
 		if os, ok := orders[num]; ok {
-			if wrong := intersection(os, append(seen, num)); len(wrong) != 0 {
+			if wrong := cmp.Intersection(os, append(seen, num)); len(wrong) != 0 {
 				return false
 			}
 			seen = append(seen, num)
@@ -94,7 +95,7 @@ func repair(orders map[int][]int, update []int) []int {
 	fixed := make([]int, 0, len(update))
 	for ind, num := range update {
 		fixed = append(fixed, num)
-		if wrong := intersection(orders[num], fixed[:ind]); len(wrong) != 0 {
+		if wrong := cmp.Intersection(orders[num], fixed[:ind]); len(wrong) != 0 {
 			fixed = slices.DeleteFunc(fixed, func(i int) bool {
 				return slices.Contains(wrong, i)
 			})
@@ -103,20 +104,4 @@ func repair(orders map[int][]int, update []int) []int {
 	}
 
 	return fixed
-}
-
-func intersection(a, b []int) []int {
-	m := make(map[int]bool, 0)
-	set := make([]int, 0)
-	for _, num := range a {
-		m[num] = true
-	}
-
-	for _, num := range b {
-		if m[num] {
-			set = append(set, num)
-		}
-	}
-
-	return set
 }
