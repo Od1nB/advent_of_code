@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
 )
 
 type Posistion struct {
@@ -20,8 +19,10 @@ var (
 	west  = Posistion{x: -1, y: 0}
 )
 
-var m []string
-var initialPos *Posistion
+var (
+	m          [][]Posistion
+	initialPos *Posistion
+)
 
 func main() {
 	filename := "example.txt"
@@ -36,44 +37,32 @@ func main() {
 	defer f.Close()
 	scnr := bufio.NewScanner(f)
 	task1, task2 := 0, 0
-	var guard *Posistion
-
 	for scnr.Scan() {
 		t := scnr.Text()
-		//fmt.Println(t)
-		m = append(m, t)
-		found, x := findGuard(t)
-		if !found {
-			continue
+		row := makePosRow(t, len(m))
+		found, x := findGuard(row)
+		if found {
+			initialPos = &row[x]
+			row[x].value = 'X'
 		}
-		guard, initialPos = &Posistion{x: x, y: len(m) - 1}, &Posistion{x: x, y: len(m) - 1}
-		m[len(m)-1] = strings.Replace(m[len(m)-1], "^", "X", 1)
-	}
-	if guard != nil {
-		fmt.Println("found guard at ", guard.x, " ", guard.y)
-	}
-
-	posMap := createPosMap(m)
-	direction := north
-	for {
-		if wallAhead(*guard, direction) {
-			direction = turnRight(direction)
-		}
-		done := move(guard, &direction)
-		if done {
-			break
-		}
+		m = append(m, row)
 
 	}
-	task1 += calcScore(m)
+	if initialPos != nil {
+		fmt.Println("found guard at ", initialPos.x, " ", initialPos.y)
+	}
 
-	for y, xPos := range posMap {
+	mCopy := copyRecur(m)
+	moveThroughRec(mCopy, *initialPos, north, map[Posistion]Posistion{})
+	task1 += calcScore(mCopy)
+
+	for y, xPos := range m {
 	inner:
 		for x, pos := range xPos {
 			if equalPos(pos, *initialPos) || pos.value == '#' {
 				continue inner
 			}
-			cp := copyRecur(posMap)
+			cp := copyRecur(m)
 			cp[y][x].value = '#'
 
 			loop := moveThroughRec(cp, *initialPos, north, map[Posistion]Posistion{})
@@ -127,63 +116,26 @@ func copyRecur(src [][]Posistion) [][]Posistion {
 	return dst
 }
 
-func createPosMap(m []string) [][]Posistion {
-	posMap := make([][]Posistion, len(m))
-	for y, xarr := range m {
-		row := make([]Posistion, len(xarr))
-		for x, r := range xarr {
-			row[x].value = r
-			row[x].x = x
-			row[x].y = y
-		}
-		posMap[y] = row
+func makePosRow(s string, y int) []Posistion {
+	row := make([]Posistion, len(s))
+	for x, v := range s {
+		row[x].value = v
+		row[x].x = x
+		row[x].y = y
 	}
-
-	return posMap
+	return row
 }
 
-func calcScore(m []string) (score int) {
-	for _, str := range m {
-		score += strings.Count(str, "X")
+func calcScore(m [][]Posistion) (score int) {
+	for _, row := range m {
+		for _, pos := range row {
+			if pos.value != 'X' {
+				continue
+			}
+			score += 1
+		}
 	}
 	return
-}
-
-func move(guard, posDelta *Posistion) bool {
-	x := guard.x
-	y := guard.y
-	if !possibleMove(*guard, *posDelta) {
-		return true
-	}
-	guard.x = x + posDelta.x
-	guard.y = y + posDelta.y
-	arr := []byte(m[guard.y])
-	arr[guard.x] = 'X'
-	m[guard.y] = string(arr)
-
-	return false
-}
-
-func possibleMove(guard, posDelta Posistion) bool {
-	x := guard.x
-	y := guard.y
-	if y+posDelta.y == len(m) || x+posDelta.x == len(m[y]) {
-		return false
-	}
-	return true
-}
-
-func wallAhead(guard, posDelta Posistion) bool {
-	if !possibleMove(guard, posDelta) {
-		return false
-	}
-	x := guard.x
-	y := guard.y
-	if m[y][x+posDelta.x] == '#' ||
-		m[y+posDelta.y][x] == '#' {
-		return true
-	}
-	return false
 }
 
 func turnRight(currDir Posistion) Posistion {
@@ -201,11 +153,13 @@ func turnRight(currDir Posistion) Posistion {
 	}
 }
 
-func findGuard(s string) (bool, int) {
-	if !strings.Contains(s, "^") {
-		return false, 0
+func findGuard(positions []Posistion) (bool, int) {
+	for ind, pos := range positions {
+		if pos.value == '^' {
+			return true, ind
+		}
 	}
-	return true, strings.Index(s, "^")
+	return false, 0
 }
 
 func equalPos(dirA, dirB Posistion) bool {
