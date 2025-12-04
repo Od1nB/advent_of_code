@@ -1,10 +1,10 @@
 const std = @import("std");
 
-fn countNeighbors(map: *std.AutoHashMap(usize, []const u8), row: usize, col: usize, target: u8) usize {
+fn countNeighbors(factory: [][]u8, row: usize, col: usize, target: u8) usize {
     const directions = [_][2]i32{
-        .{ -1, -1 }, .{ -1, 0 }, . { -1, 1 }, // top-left, top, top-right
-        .{ 0, - 1 },             . { 0, 1  }, // left, right
-        .{ 1, - 1 }, .{ 1, 0  },  .{ 1, 1  }, // bottom-left, bottom, bottom-right
+        .{ -1, -1 }, .{ -1, 0 }, .{ -1, 1 },
+        .{ 0, -1 },  .{ 0, 1 },  .{ 1, -1 },
+        .{ 1, 0 },   .{ 1, 1 },
     };
 
     var count: usize = 0;
@@ -14,14 +14,13 @@ fn countNeighbors(map: *std.AutoHashMap(usize, []const u8), row: usize, col: usi
         const new_col = @as(i32, @intCast(col)) + dir[1];
 
         if (new_row < 0 or new_col < 0) continue;
+        if (new_row >= factory.len) continue;
 
         const r = @as(usize, @intCast(new_row));
         const c = @as(usize, @intCast(new_col));
 
-        if (map.get(r)) |line| {
-            if (c < line.len and line[c] == target) {
-                count += 1;
-            }
+        if (c < factory[r].len and factory[r][c] == target) {
+            count += 1;
         }
     }
 
@@ -33,33 +32,31 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const file = try std.fs.cwd().openFile("../input.txt", .{});
-    defer file.close();
+    const content = try std.fs.cwd().readFileAlloc(allocator, "../input.txt", 1024 * 1024);
+    defer allocator.free(content);
 
-    var map = std.AutoHashMap(usize, []const u8).init(allocator);
-    defer map.deinit();
+    var factory = try std.ArrayList([]u8).initCapacity(allocator, 140);
+    defer {
+        for (factory.items) |line| {
+            allocator.free(line);
+        }
+        factory.deinit(allocator);
+    }
 
-    var read_buf: [4096]u8 = undefined;
-    var file_reader = file.reader(&read_buf);
-
-    var row: usize = 0;
-    while (try file_reader.interface.takeDelimiter('\n')) |line| {
+    var lines = std.mem.splitScalar(u8, content, '\n');
+    while (lines.next()) |line| {
+        if (line.len == 0) continue;
         const line_copy = try allocator.dupe(u8, line);
-        try map.put(row, line_copy);
-        row += 1;
+        try factory.append(allocator, line_copy);
     }
 
     var task1: usize = 0;
-    var it = map.iterator();
-    while (it.next()) |entry| {
-        const row_idx = entry.key_ptr.*;
-        const line = entry.value_ptr.*;
-
+    for (factory.items, 0..) |line, row_idx| {
         for (line, 0..) |char, col_idx| {
             if (char != '@') {
                 continue;
             }
-            const count = countNeighbors(&map, row_idx, col_idx, '@');
+            const count = countNeighbors(factory.items, row_idx, col_idx, '@');
             if (count < 4) {
                 task1 += 1;
             }
@@ -69,21 +66,16 @@ pub fn main() !void {
     var task2: usize = 0;
     var changed: bool = true;
     while (changed) {
-        var newit = map.iterator();
         changed = false;
-        while (newit.next()) |entry| {
-            const row_idx = entry.key_ptr.*;
-            const line = entry.value_ptr.*;
-
+        for (factory.items, 0..) |line, row_idx| {
             for (line, 0..) |char, col_idx| {
                 if (char != '@') {
                     continue;
                 }
-                const count = countNeighbors(&map, row_idx, col_idx, '@');
+                const count = countNeighbors(factory.items, row_idx, col_idx, '@');
                 if (count < 4) {
                     task2 += 1;
-                    const mutable_line = @constCast(line);
-                    mutable_line[col_idx] = '.';
+                    factory.items[row_idx][col_idx] = '.';
                     changed = true;
                 }
             }
@@ -92,9 +84,4 @@ pub fn main() !void {
 
     std.debug.print("task1: {}\n", .{task1});
     std.debug.print("task2: {}\n", .{task2});
-
-    var it2 = map.valueIterator();
-    while (it2.next()) |value| {
-        allocator.free(value.*);
-    }
 }
