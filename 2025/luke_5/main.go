@@ -32,7 +32,7 @@ func main() {
 	doingRanges := true
 	for scnr.Scan() {
 		t := scnr.Text()
-		if t == " " || t == "\n" || t == "" {
+		if t == "" {
 			doingRanges = false
 			continue
 		}
@@ -48,11 +48,8 @@ func main() {
 	}
 
 	for _, ing := range ingridients {
-		for _, rng := range ranges {
-			if inRange(rng, ing) {
-				task1++
-				break
-			}
+		if inRanges(ranges, ing) {
+			task1++
 		}
 	}
 
@@ -68,7 +65,6 @@ func main() {
 func parseRange(s string) [2]int {
 	spl := strings.Split(s, "-")
 	if len(spl) != 2 {
-		// fmt.Println(len())
 		panic("not 2 numbers and -" + s)
 	}
 
@@ -88,24 +84,30 @@ func inRange(rng [2]int, cand int) bool {
 	return cand >= rng[0] && cand <= rng[1]
 }
 
-func mergeRanges(ranges [][2]int) [][2]int {
-	sort.Slice(ranges, func(i, j int) bool {
-		return ranges[i][0] < ranges[j][0]
-	})
+func inRanges(rngs [][2]int, cand int) bool {
+	for _, rng := range rngs {
+		if inRange(rng, cand) {
+			return true
+		}
+	}
 
+	return false
+}
+
+func mergeRanges(ranges [][2]int) [][2]int {
+	sort.Slice(ranges, func(i, j int) bool { return ranges[i][0] < ranges[j][0] })
 	merged := [][2]int{ranges[0]}
 	for i := 1; i < len(ranges); i++ {
 		last := &merged[len(merged)-1]
 		curr := ranges[i]
 
-		if curr[0] <= last[1]+1 {
-			if curr[1] > last[1] {
-				last[1] = curr[1]
-			}
-		} else {
+		if curr[0] > last[1]+1 {
 			merged = append(merged, curr)
+			continue
+		}
+		if curr[1] > last[1] {
+			last[1] = curr[1]
 		}
 	}
-
 	return merged
 }
