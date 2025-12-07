@@ -42,7 +42,7 @@ func main() {
 	}
 
 	reachable := map[int]int{startX: 1}
-	for y := 1; y < len(TachyonManiFold); y++ {
+	for y := range len(TachyonManiFold) {
 		next := make(map[int]int, len(reachable)+len(reachable)/2)
 
 		for x, paths := range reachable {
@@ -64,8 +64,8 @@ func main() {
 		task2 += count
 	}
 
-	fmt.Println("task1: ", task1) // 1619
-	fmt.Println("task2: ", task2) // 23607984027985
+	fmt.Println("task1: ", task1)                          // 1619
+	fmt.Println("task2: ", task2, task2 == 23607984027985) // 23607984027985
 }
 
 func blastDownward(x, y int) {
